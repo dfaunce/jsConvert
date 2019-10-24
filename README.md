@@ -15,6 +15,10 @@ Web browser compatible with ECMAScript 5 Javascript. (No external libraries are 
 Reference the script in your HTML
 ```
 <script src="..\path\to\your\folders\jsConvert.js"></script>
+
+or
+
+<script src="..\path\to\your\folders\jsConvert.min.js"></script>
 ```
 
 
@@ -79,32 +83,57 @@ To retrieve a full list of short-hand units, simply pass the parameter **help** 
 
 ```
 jsConvert("help");
-    ----- output:
-    ************************************
-    jsConvert Help.
-       - jsConvert(23.5, 'in3', 'mL');
 
-    Use the following short-hand units.
-    -------------------------------------
-    Area
-     - mi2 (square-miles)
-     - yd2 (square-yards)
-     - ft2 (square-feet)
-     - in2 (square-inches)
-     - km2 (square-kilometers)
-     - m2 (square-meters)
-     - mm2 (square-millimeters)
-     - cm2 (square-centimeters)
-     -------------------------------------
-     Length
-     - mi (miles)
-     - yd (yards)
-     - ft (feet)
-     - in (inches)
-     - km (kilometers)
-    ...
-    ...
-    ...
-    
+--------------------------------------------------------------------------------------
+**************************************************************************************
+JSCONVERT HELP
+**************************************************************************************
+--------------------------------------------------------------------------------------
+
+**************************************************************************************
+USAGE
+**************************************************************************************
+The primary function takes 4 parameters (the first three are required):
+
+  [1]: Value (decimal) to convert (*required).
+  [2]: From Unit (string) short-hand (*required).
+  [3]: To Unit (string) short-hand (*required).
+  [4]: Decimal Place to round result to (integer) (*optional).
+
+'short-hand' units are the unit symbols, such as 'm' for 'meters' or 'ft/s2' for 'Feet per Square-Second'.
+
+    jsConvert( [decimal value], [from], [to], [decimal place] );
+
+    ----------------------------------------------------------------------------------
+    Example: jsConvert(43.5, 'm/s2', 'ft/min2');
+    This converts 43.5 Meters per Square-Second to Feet per Square-Minute.
+    output: 513779.5275590532
+    ----------------------------------------------------------------------------------
+
+    ----------------------------------------------------------------------------------
+    Example: jsConvert(43.5, 'ft/hr2', 'm/s2', 2);
+    This converts 43.5 Meters per Square-Second to Feet per Square-Minute and rounds to nearest 2nd decimal place
+    output: 513779.53
+    ----------------------------------------------------------------------------------
+
+**************************************************************************************
+MORE HELP (SEARCH, CHECK, VALIDATE)
+**************************************************************************************
+
+To see the full list of UNIT TYPES:
+    window.runnerWindow.proxyConsole.log(jsConvert('help', 'units'));
+
+--------------------------------------------------------------------------------------
+
+To check if a short-hand unit is valid:
+    window.runnerWindow.proxyConsole.log(jsConvert('check', 'N/m2'));
+
+--------------------------------------------------------------------------------------
+
+To search for a unit or type (*partial searches are accepted):
+    window.runnerWindow.proxyConsole.log(jsConvert('search', 'viscos');
+
+**************************************************************************************
+**************************************************************************************
 
 ```
