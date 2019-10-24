@@ -1,96 +1,97 @@
-var jsConvert = function(val, from, to, decimalPlaces) {
+let jsConvert = function(val, from, to, dec = null) {
 
     //Get decimal places. If the user didn't input one, assume the user wants the full value (expressed as -1)
-    var decimals = (typeof(decimalPlaces) === 'undefined' || decimalPlaces == null ) ? -1 : parseInt(decimalPlaces);
-   
+    let decimals = ((typeof(dec) === "undefined" || dec == null ) ? -1 : parseInt(dec));
 
-    //Retrieve the JSON object where both "from" and "to" units reside in.
-    // *Note: it is important that both "from" and "to" units exist within the unit type. Some short-hand units like "oz" exist in two separate Types (Mass and Volume)
-    // INPUTS:  [From unit],  [TO unit]  both strings in unit short-hand form
-    // OUTPUT: An object in the form of {"type": string, "from": object, "to": object}
+    /*
+     Retrieve the JSON object where both "from" and "to" units reside in.
+       *Note: it is important that both "from" and "to" units exist within the
+              unit type. Some short-hand units like "oz" exist in two separate
+              Types (Mass and Volume)
+       INPUTS:  [From unit],  [TO unit]  both strings in unit short-hand form
+       OUTPUT: An object in the form of {"type": string, "from": object, "to": object}
+	*/
     function getTypeofUnits(from, to) {
 
         //Iterative variables for the loop.
         let i = 0, j = 0;
-    
-        // _f and _t are booleans that will be reset to FALSE after checking each TYPE. 
-        // _f0 and _t0 are considered global booleans of the search. Their purpose is to see if the unit even exists in the entire dataset. 
+
+        // _f and _t are booleans that will be reset to FALSE after checking each TYPE.
+        // _f0 and _t0 are considered global booleans of the search. Their purpose is to see if the unit even exists in the entire dataset.
         //   Once they become TRUE, they stay TRUE - this is only to notify the user that the unit they entered does exist in the dataset
         let _f = false, _t = false, _f0 = false, _t0 = false;
-    
+
         // $o will represent the specific unit of a TYPE in the for loop below, by storing this in cache we can analyze the data quicker
         let $o;
-    
+
         // $from and $to will represent the found objects in the loop below
         let $from, $to;
-    
+
         // $result is the resultant object, it is preset to null and empty values
         let $result = {"type":null, "from":null, "to":null, "errors": []};
-    
+
         //Initate a search on the dataset by running a for loop
         for (i = 0; i < jsCAU.length; i++) {
-    
+
             //If we already have values, break from the loop
             if ($result.type !== null) {
                 break;
             }
-    
+
             // Iterate through the "UNITS" of each TYPE object
             for (j = 0; j < jsCAU[i].units.length; j++) {
-    
+
                 //Retrieve the object
                 $o = jsCAU[i].units[j];
-    
+
                 //If the FROM unit has not been found for this TYPE
                 if (!_f) {
-    
+
                     //Check to see if the units match
                     if ($o.unit == from) {
-    
+
                         //If TRUE, then set the $from object equal to THIS object and set the booleans _f and _f0 to true;
                         $from = $o;
-                        _f = _f0 = true;           
+                        _f = _f0 = true;
                     }
-                }                          
-    
+                }
+
                 //If the TO unit has not been found for this TYPE
                 if (!_t) {
-    
+
                     //Check to see if the units match
                     if ($o.unit == to) {
-    
+
                         //If TRUE, then set the $from object equal to THIS object and set the booleans _f and _f0 to true;
                         $to = $o;
                         _t = _t0 = true;
                     }
-                }                
-    
+                }
+
                 //If both FROM and TO have been found within a TYPE we have a successful data set to return. Set the $result object and break from the loop.
                 if (_f && _t) {
-                    $result = {"type": jsCAU[i].type, "from": $from, "to": $to, "errors": []};                
+                    $result = {"type": jsCAU[i].type, "from": $from, "to": $to, "errors": []};
                     break;
-                } 
+                }
             }
-    
+
             //If we have run through an entire set without successfully finding both FROM and TO within the type, reset the variables to null and false values.
             _f = false;
             _t = false;
             $from = null;
             $to = null;
         }
-    
+
         //If after we conducted the search we NEVER found the FROM value (or TO value) in the entire dataset, notate the error(s) to send back to the user.
         if (!_f0)
             $result.errors.push(`Unable to locate ${from}`);
-    
-        if (!_t0) 
+
+        if (!_t0)
             $result.errors.push(`Unable to locate ${to}`);
-    
-    
+
         //Return the Dataset
         return $result;
     }
-
 
     //Converts temperature units: F, C, K, R
     function convertTemp(val, from, to) {
@@ -98,7 +99,7 @@ var jsConvert = function(val, from, to, decimalPlaces) {
         if (from === to)
             return val;
 
-        switch (from) {            
+        switch (from) {
             case "F":
                 switch (to) {
                     case "C":
@@ -122,7 +123,7 @@ var jsConvert = function(val, from, to, decimalPlaces) {
                         break;
                     case "K":
                         temp  = parseFloat(val + 273.15);
-                        break;                    
+                        break;
                     case "R":
                         temp = parseFloat((val + 273.15) * 9 / 5);
                         break;
@@ -168,27 +169,29 @@ var jsConvert = function(val, from, to, decimalPlaces) {
                     break;
         }
         return temp;
-    }  
+    }
 
+    //Converts units in the jsCAU array of objects
     function convertLinear(val, from, to) {
 
-        //Get the object $set by searching the Units dataset for the FROM and TO short-hand units. 
+        //Get the object $set by searching the Units dataset for the FROM and TO short-hand units.
         let $set = getTypeofUnits(from, to);
-        
+
         //If the set contains errors, display the errors in the log
         if ($set.errors.length > 0) {
             logError($set.errors);
             return -Infinity;
         }
-    
+
         //At this point, we do not have errors and we have retrieved the FROM and TO dataset objects.
         //Calculate the converted value.
-        let v = parseFloat(val * $set.from.xval / $set.to.xval);        
+        let v = parseFloat(val * $set.to.xval / $set.from.xval);
 
         //return the value
-        return v;        
+        return v;
     }
 
+    //Logs any errors
     function logError(errors) {
         if (errors.length > 0) {
             console.log("-----------------------------------");
@@ -197,207 +200,202 @@ var jsConvert = function(val, from, to, decimalPlaces) {
                 console.log(` - ${errors[i]}`);
             }
             console.log("");
-        }        
+        }
     }
 
-    function handler(val, from, to) {     
-        //Check to see if we are converting Temperatures or another type of unit.
-        let v = (from.match(/^(F|C|R|K)$/) && from.match(/^(F|C|R|K)$/)) ? convertTemp(val, from, to) : convertLinear(val, from, to);                
+    //Primary function call.
+    function init(val, from, to) {
+		if (val === "help" || val === "check" || val === "search") {
+			help(val, from);
+			return "";
+		}
+		else {
+			//Check to see if we are converting Temperatures or another type of unit.
+			let v = (from.match(/^(F|C|R|K)$/) && from.match(/^(F|C|R|K)$/)) ? convertTemp(val, from, to) : convertLinear(val, from, to);
 
-        //If we have a calculated value (no errors) and the user specified a decimal place, round the value to the decimal place
-        if (v !== -Infinity && decimals >= 0) {
-            let c = Math.pow(10, decimals);
-            v = Math.round(v * c) / c;
-        }
-
-        return v;  
-    } 
+			//If we have a calculated value (no errors) and the user specified a decimal place, round the value to the decimal place
+			if (v !== -Infinity && decimals >= 0) {
+				let c = Math.pow(10, decimals);
+				v = Math.round(v * c) / c;
+			}
+			return v;
+		}
+    }
 
 
     // ***********************************************************************************************************************
     // ------------------------------------------------ HELP / CHECK / SEARCH ------------------------------------------------
-    //                                  (* This is an optional feature and may be removed *)
+    //                                   (* This is an optional feature and may be removed *)
     // ***********************************************************************************************************************
+	function help(val, from) {
+        //If the user specified the "help" variable, this will override the primary init function call.
+		// =>  jsConvert("Help", "Units");   <== This displays a list of all Unit Types in the console.
+		// =>  jsConvert("Help", "Volume");  <== This displays a list of all Units of Type 'Volume' in the console.
+		if (val === "help") {
+			var bar = "--------------------------------------------------------------------------------------";
+			var bigBar = "**************************************************************************************";
+			var bar0 = "    " + bar.substring(0, bar.length - 4);
 
-    //If the user specified the "help" variable, this will override the primary handler function call.    
-    // =>  jsConvert("Help", "Units");   <== This displays a list of all Unit Types in the console.
-    // =>  jsConvert("Help", "Volume");  <== This displays a list of all Units of Type 'Volume' in the console. 
-    if (val === "help") {
-        var bar = "--------------------------------------------------------------------------------------";
-        var bigBar = "**************************************************************************************";
-        var bar0 = "    " + bar.substring(0, bar.length - 4);
+			var _display = [];
 
-        var _display = [];
+			var i = 0, j = 0; 
+			var isType = (typeof(from) === 'string' || from instanceof String);
 
-        var i = 0, j = 0; 
-        var isType = (typeof(from) === 'string' || from instanceof String);
+			//If no TYPE was entered, display the initial HELP text
+			if (!isType) {
+				_display.push("", bar, bigBar, "JSCONVERT HELP", bigBar, bar, "");
+				_display.push(bigBar, "USAGE", bigBar);
+				_display.push("The primary function takes 4 parameters (the first three are required):", "");
+				_display.push(" [1]: Value (decimal) to convert (*required).", " [2]: From Unit (string) short-hand (*required).", " [3]: To Unit (string) short-hand (*required).", " [4]: Decimal Place to round result to (integer) (*optional).", "");
+				_display.push("'short-hand' units are the unit symbols, such as 'm' for 'meters' or 'ft/s2' for 'Feet per Square-Second'.", "");
+				_display.push("    jsConvert( [decimal value], [from], [to], [decimal place] );", "");
+				_display.push(bar0, "    Example: jsConvert(43.5, 'm/s2', 'ft/min2');", "    This converts 43.5 Meters per Square-Second to Feet per Square-Minute.", "    output: 513779.5275590532", bar0, "");
+				_display.push(bar0, "    Example: jsConvert(43.5, 'ft/hr2', 'm/s2', 2);", "    This converts 43.5 Meters per Square-Second to Feet per Square-Minute and rounds to nearest 2nd decimal place", "    output: 513779.53", bar0, "");
+				_display.push("");
+				_display.push(bigBar, "MORE HELP (SEARCH, CHECK, VALIDATE)", bigBar);
+				_display.push("", "To see the full list of UNIT TYPES:", "    console.log(jsConvert('help', 'units'));", "", bar);
+				_display.push("", "To check if a short-hand unit is valid:", "    console.log(jsConvert('check', 'N/m2'));", "", bar );
+				_display.push("", "To search for a unit or type (*partial searches are accepted):", "    console.log(jsConvert('search', 'viscos');", "");
+				_display.push(bigBar, bigBar, "", "");
+			}
 
-        //If no TYPE was entered, display the initial HELP text
-        if (!isType) {
-            _display.push("", bar, bigBar, "JSCONVERT HELP", bigBar, bar, "");
-            _display.push(bigBar, "USAGE", bigBar);
-            _display.push("The primary function takes 4 parameters (the first three are required):", "");
-            _display.push(" [1]: Value (decimal) to convert (*required).", " [2]: From Unit (string) short-hand (*required).", " [3]: To Unit (string) short-hand (*required).", " [4]: Decimal Place to round result to (integer) (*optional).", "");
-            _display.push("'short-hand' units are the unit symbols, such as 'm' for 'meters' or 'ft/s2' for 'Feet per Square-Second'.", "");
-            _display.push("    jsConvert( [decimal value], [from], [to], [decimal place] );", "");
-            _display.push(bar0, "    Example: jsConvert(43.5, 'm/s2', 'ft/min2');", "    This converts 43.5 Meters per Square-Second to Feet per Square-Minute.", "    output: 513779.5275590532", bar0, "");
-            _display.push(bar0, "    Example: jsConvert(43.5, 'ft/hr2', 'm/s2', 2);", "    This converts 43.5 Meters per Square-Second to Feet per Square-Minute and rounds to nearest 2nd decimal place", "    output: 513779.53", bar0, "");
-            _display.push("");
-            
-            _display.push(bigBar, "MORE HELP (SEARCH, CHECK, VALIDATE)", bigBar);
-            
-            _display.push("", "To see the full list of UNIT TYPES:", "    console.log(jsConvert('help', 'units'));", "", bar);
-            _display.push("", "To check if a short-hand unit is valid:", "    console.log(jsConvert('check', 'N/m2'));", "", bar );
-            _display.push("", "To search for a unit or type (*partial searches are accepted):", "    console.log(jsConvert('search', 'viscos');", "");
-            _display.push(bigBar, bigBar, "", "");           
-        }
+			//If a TYPE was entered, display the HELP text pertaining to the specific TYPE
+			else {
+				var _type = from;
+				_display.push("", bar, bigBar, `JSCONVERT HELP => ${_type}`, bigBar, bar, "");
 
+				var $records = jsCAU.filter(obj => obj.type === _type);
+				if ($records[0].units.length > 0) {
 
-        //If a TYPE was entered, display the HELP text pertaining to the specific TYPE
-        else {
-            var _type = from;
-            _display.push("", bar, bigBar, `JSCONVERT HELP => ${_type}`, bigBar, bar, "");
+					_display.push(`  EXAMPLE:  jsConvert(158.5, '${$records[0].units[0].unit}', '${$records[0].units[1].unit}');`, "");
 
-            var $records = jsCAU.filter(obj => obj.type === _type);
-            if ($records[0].units.length > 0) {
+					_display.push(`Use the following short-hand codes for ${_type.toUpperCase()} units:`);
 
-                _display.push(`  EXAMPLE:  jsConvert(158.5, '${$records[0].units[0].unit}', '${$records[0].units[1].unit}');`, "");
+					for (i = 0; i < $records[0].units.length; i++) {
+						_display.push(` - ${$records[0].units[i].unit} (${$records[0].units[i].display})`);
+					}
+				}
+			}
 
-                _display.push(`Use the following short-hand codes for ${_type.toUpperCase()} units:`);
-            
-                for (i = 0; i < $records[0].units.length; i++) {
-                    _display.push(` - ${$records[0].units[i].unit} (${$records[0].units[i].display})`);
-                }    
-            }
-        }
+			for (i = 0; i < _display.length; i++) {
+				console.log(_display[i]);
+			}
 
-        for (i = 0; i < _display.length; i++) {
-            console.log(_display[i]);
-        }
+			return "";
+		}
 
-        return "";
-    }
+		//Else if the user entered a "check" parameter, display the "check" text in the console
+		// =>  jsConvert("check", "m/s2");   <== Checks the entire dataset to see if 'm/s2' is a valid short-hand code. The console will display the results.
+		else if (val === "check") {
+			var bar = "--------------------------------------------------------------------------------------";
+			var bigBar = "**************************************************************************************";
+			var bar0 = "    " + bar.substring(0, bar.length - 4);
 
-    //Else if the user entered a "check" parameter, display the "check" text in the console   
-    // =>  jsConvert("check", "m/s2");   <== Checks the entire dataset to see if 'm/s2' is a valid short-hand code. The console will display the results.
-    else if (val === "check") {
-        var bar = "--------------------------------------------------------------------------------------";
-        var bigBar = "**************************************************************************************";
-        var bar0 = "    " + bar.substring(0, bar.length - 4);
+			var _display = [bar, bigBar, "JSCONVERT CHECK", bigBar, bar, ""];
 
-        var _display = [bar, bigBar, "JSCONVERT CHECK", bigBar, bar, ""];
+			var i = 0, j = 0;
+			var hasParam = (typeof(from) === 'string' || from instanceof String);
 
-        var i = 0, j = 0; 
-        var hasParam = (typeof(from) === 'string' || from instanceof String);
+			var isValid = false;
 
-        var isValid = false;
-        
+			if (!hasParam) {
+				_display.push("   **ERROR**: No parameter was entered to 'check'. Please enter a second parameter.", "");
+			}
+			else {
+				for (i = 0; i < jsCAU.length; i++) {
+					for (j = 0; j < jsCAU[i].units.length; j++) {
+						if (from == jsCAU[i].units[j].unit) {
+							isValid = true;
+							_display.push(`   CONFIRMED! The short-hand code '${from}' exists in TYPE [${jsCAU[i].type}].`);
+						}
+					}
+				}
+				if (!isValid) {
+					_display.push(`   SORRY... the short-hand code '${from}' could not be found in the dataset.`);
+				}
+			}
 
-        if (!hasParam) {
-            _display.push("   **ERROR**: No parameter was entered to 'check'. Please enter a second parameter.", "");            
-        }
-        else {
-            for (i = 0; i < jsCAU.length; i++) {                
-                for (j = 0; j < jsCAU[i].units.length; j++) {
-                    if (from == jsCAU[i].units[j].unit) {
-                        isValid = true;
-                        _display.push(`   CONFIRMED! The short-hand code '${from}' exists in TYPE [${jsCAU[i].type}].`);
-                    }
-                }
-            }
+			_display.push("");
 
-            if (!isValid) {
-                _display.push(`   SORRY... the short-hand code '${from}' could not be found in the dataset.`);
-            }
+			for (i = 0; i < _display.length; i++) {
+				console.log(_display[i]);
+			}
+			return "";
+		}
 
-        }
+		//Else if the user entered a "search" parameter, display the "searched" text in the console
+		// =>  jsConvert("search", "oz");   <== Returns (if any) a list of all Units and Unit Types that are associated with the searched text (NOT CASE-SENSITIVE).
+		else if (val === "search") {
+			var bar = "--------------------------------------------------------------------------------------";
+			var bigBar = "**************************************************************************************";
+			var bar0 = "    " + bar.substring(0, bar.length - 4);
 
-        _display.push("");
+			var _display = [bar, bigBar, "JSCONVERT SEARCH", bigBar, bar, ""];
 
-        for (i = 0; i < _display.length; i++) {
-            console.log(_display[i]);
-        }
-        return "";
-    }
+			var i = 0, j = 0;
+			var hasParam = (typeof(from) === 'string' || from instanceof String);
 
-    //Else if the user entered a "search" parameter, display the "searched" text in the console   
-    // =>  jsConvert("search", "oz");   <== Returns (if any) a list of all Units and Unit Types that are associated with the searched text (NOT CASE-SENSITIVE).
-    else if (val === "search") {
-        var bar = "--------------------------------------------------------------------------------------";
-        var bigBar = "**************************************************************************************";
-        var bar0 = "    " + bar.substring(0, bar.length - 4);
+			var isValid = false;
 
-        var _display = [bar, bigBar, "JSCONVERT SEARCH", bigBar, bar, ""];
+			if (!hasParam) {
+				_display.push("   **ERROR**: No parameter was entered to 'search'. Please enter a second parameter.", "");
+			}
+			else {
+				var s = "", $o = null, $r = null;
+				var key = from.toLowerCase();
 
-        var i = 0, j = 0; 
-        var hasParam = (typeof(from) === 'string' || from instanceof String);
+				_display.push(`  Searching dataset for '${from}'....`);
 
-        var isValid = false;
-        
+				for (i = 0; i < jsCAU.length; i++) {
+					$o = jsCAU[i];
+					if ( (($o.type).toLowerCase()).indexOf(key) >= 0 || (($o.keywords).toLowerCase()).indexOf(key) >= 0) {
+						isValid = true;
+						_display.push(`   UNIT TYPE: ${$o.type}`);
+					}
 
-        if (!hasParam) {
-            _display.push("   **ERROR**: No parameter was entered to 'search'. Please enter a second parameter.", "");            
-        }
-        else {
-            var s = "", $o = null, $r = null;
-            var key = from.toLowerCase();
+					for (j = 0; j < $o.units.length; j++) {
+						$r = $o.units[j];
+						if ( (($r.display).toLowerCase()).indexOf(key) >= 0 || (($r.unit).toLowerCase()).indexOf(key) >= 0) {
+							isValid = true;
+							_display.push(`  UNIT: ${$r.unit}  (${$r.display}) in TYPE [${$o.type}]`);
+						}
+					}
+				}
 
-            _display.push(`  Searching dataset for '${from}'....`);
+				if (!isValid) {
+					_display.push(`   SORRY... unable to locate '${from}' in the dataset.`);
+				}
 
+			}
 
-            for (i = 0; i < jsCAU.length; i++) {
-                $o = jsCAU[i];
-                if ( (($o.type).toLowerCase()).indexOf(key) >= 0 || (($o.keywords).toLowerCase()).indexOf(key) >= 0) {
-                    isValid = true;
-                    _display.push(`   UNIT TYPE: ${$o.type}`);
-                }
-                
-                for (j = 0; j < $o.units.length; j++) {
-                    $r = $o.units[j];
-                    if ( (($r.display).toLowerCase()).indexOf(key) >= 0 || (($r.unit).toLowerCase()).indexOf(key) >= 0) {
-                        isValid = true;
-                        _display.push(`  UNIT: ${$r.unit}  (${$r.display}) in TYPE [${$o.type}]`);
-                    }
-                }
-            }
+			_display.push("");
 
-            if (!isValid) {
-                _display.push(`   SORRY... unable to locate '${from}' in the dataset.`);
-            }
+			for (i = 0; i < _display.length; i++) {
+				console.log(_display[i]);
+			}
+			return "";
+		}
 
-        }
-
-        _display.push("");
-
-        for (i = 0; i < _display.length; i++) {
-            console.log(_display[i]);
-        }
-        return "";
-    }
-
-    else {        
-    }
+		else {
+		}
+		
+	}
+    
 
     // ************************************************************************************************************************
     // __________________________________________ END HELP / CHECK / SEARCH SECTIONS __________________________________________
     // ************************************************************************************************************************
 
+	//Return calculated value (or help section)
+	return init(val, from, to);
 
-    if (typeof(val) !== 'string') {
-        return handler(val, from, to);
-    }
-
-    
 };
 
-
-const jsCAU = [ 
-
-    {		
-        "type":	"Acceleration (Angular)",
-        "contains":	"deg/s2, deg/min2, deg/hr2, grade/s2, rad/s2, rad/min2, rad/hr2, rev/s2, rev/min2, rev/hr2",
-        "keywords":	"accelerate accel circular round angle degree radian rev",
-        "units": [	
+const jsCAU = [
+    {
+        "type": "Acceleration (Angular)",
+        "keywords": "accelerate accel circular round angle degree radian rev",
+        "units": [
             { "unit": "deg/s2", "xval": 360, "display": "Degrees per Second-Squared"},
             { "unit": "deg/min2", "xval": 1296000, "display": "Degrees per Minute-Squared"},
             { "unit": "deg/hr2", "xval": 4665600000, "display": "Degrees per Hour-Squared"},
@@ -408,14 +406,12 @@ const jsCAU = [
             { "unit": "rev/s2", "xval": 1, "display": "Revolutions per Second-Squared"},
             { "unit": "rev/min2", "xval": 3600, "display": "Revolutions per Minute-Squared"},
             { "unit": "rev/hr2", "xval": 12960000, "display": "Revolutions per Hour-Squared"}
-        ]	
-    },		
- 
-    {		
-        "type":	"Acceleration (Linear)",
-        "contains":	"mm/s2, mm/min2, mm/hr2, cm/s2, cm/min2, cm/hr2, m/s2, m/min2, m/hr2, km/s2, km/min2, km/hr2, in/s2, in/min2, in/hr2, ft/s2, ft/min2, ft/hr2, yd/s2, yd/min2, yd/hr2, mi/s2, mi/min2, mi/hr2, celo, leo",
-        "keywords":	"accelerate accel circular round angle degree radian rev",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Acceleration (Linear)",
+		"keywords": "accelerate accel circular round angle degree radian rev",
+        "units": [
             { "unit": "mm/s2", "xval": 1000, "display": "Millimeters per Second-Squared"},
             { "unit": "mm/min2", "xval": 3600000, "display": "Millimeters per Minute-Squared"},
             { "unit": "mm/hr2", "xval": 12960000000, "display": "Millimeters per Hour-Squared"},
@@ -442,14 +438,12 @@ const jsCAU = [
             { "unit": "mi/hr2", "xval": 8052.96816, "display": "Miles per Hour-Squared"},
             { "unit": "celo", "xval": 3.2808399, "display": "Celo"},
             { "unit": "leo", "xval": 0.1, "display": "Leo"}
-        ]	
-    },	        
-
-    {		
-        "type":	"Area",
-        "contains":	"nm2, um2, mm2, cm2, dm2, m2, dam2, hm2, km2, mil2, in2, ft2, yd2, mi2, acre",
-        "keywords":	"square area cover acre squared",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Area",
+        "keywords": "square area cover acre squared",
+        "units": [
             { "unit": "nm2", "xval": 1000000000000000000, "display": "Nanometers-Squared"},
             { "unit": "um2", "xval": 1000000000000, "display": "Micrometers-Squared"},
             { "unit": "mm2", "xval": 1000000, "display": "Millimeters-Squared"},
@@ -465,14 +459,12 @@ const jsCAU = [
             { "unit": "yd2", "xval": 1.195990046301, "display": "Yards"},
             { "unit": "mi2", "xval": 3.861021585424E-07, "display": "Mile"},
             { "unit": "acre", "xval": 0.0002471053814671, "display": "Acres"}
-        ]	
-    },		
-    
-    {		
-        "type":	"Capacitance",
-        "contains":	"aH, fH, pH, nH, C/V, c/v, uH, mH, cH, H, kH, MH, GH, TH, PH, EH",
-        "keywords":	"electrical capacitor capacitance farad",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Capacitance",
+        "keywords": "electrical capacitor capacitance farad",
+        "units": [
             { "unit": "aH", "xval": 1000000000000000000, "display": "Attofarads"},
             { "unit": "fH", "xval": 1000000000000000, "display": "Femtofarads"},
             { "unit": "pH", "xval": 1000000000000, "display": "Picofarads"},
@@ -489,29 +481,22 @@ const jsCAU = [
             { "unit": "TH", "xval": 0.000000000001, "display": "Terrafarads"},
             { "unit": "PH", "xval": 0.000000000000001, "display": "Petafarads"},
             { "unit": "EH", "xval": 0.000000000000000001, "display": "Exafarads"}
-        ]	
-    },    
-    
-    {		
-        "type":	"Current",
-        "contains":	"A, kA, mA, aA",
-        "keywords":	"amps ampere current electrical flow biot",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Current",
+        "keywords": "amps ampere current electrical flow biot",
+        "units": [
             { "unit": "A", "xval": 1, "display": "Amperes"},
             { "unit": "kA", "xval": 0.001, "display": "Kiloamperes"},
             { "unit": "mA", "xval": 1000, "display": "Milliamperes"},
             { "unit": "aA", "xval": 0.1, "display": "Abamperes (Biot)"}
-        ]	
-    },		
-    
-
-
-
-    {		
-        "type":	"Density",
-        "contains":	"mg/mm3, mg/cm3, mg/m3, g/mm3, g/cm3, g/m3, kg/mm3, kg/cm3, kg/m3, mg/mL, mg/L, g/mL, g/L, kg/mL, kg/L, oz/in3, oz/ft3, lb/in3, lb/ft3, oz/gal, lb/gal, grain/gal, grain/ft3, grain/in3, slug/ft3, slug/in3",
-        "keywords":	"compact volume mass weight dense density",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Density",
+        "keywords": "compact volume mass weight dense density",
+        "units": [
             { "unit": "mg/mm3", "xval": 0.001, "display": "Milligrams per Cubic-Millimeter"},
             { "unit": "mg/cm3", "xval": 1, "display": "Milligrams per Cubic-Centimeter"},
             { "unit": "mg/m3", "xval": 1000000, "display": "Milligrams per Cubic-Meter"},
@@ -538,14 +523,12 @@ const jsCAU = [
             { "unit": "grain/in3", "xval": 0.252891044000579, "display": "Grains per Cubic-Inch"},
             { "unit": "slug/ft3", "xval": 0.00194032033198, "display": "Slugs per Cubic-Foot"},
             { "unit": "slug/in3", "xval": 0.000001122870562488, "display": "Slugs per Cubic-Inch"}
-        ]	
-    },		
-
-    {		
-        "type":	"Energy",
-        "contains":	"btu, mbtu, cal, kcal, dyne-cm, meV, eV, keV, MeV, GeV, in-lbf, ft-lbf, hp-hr, aJ, pJ, nJ, uJ, mJ, J, Nm, kJ, kW-s, kW-min, kW-hr, MW-s, MW-min, MW-hr, GW-s, GW-min, GW-hr, therms, W-s, W-min, W-hr, erg",
-        "keywords":	"energy btu hvac air refrigeration heat work",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Energy",
+        "keywords": "energy btu hvac air refrigeration heat work",
+        "units": [
             { "unit": "btu", "xval": 1, "display": "British Thermal Units (IT)"},
             { "unit": "mbtu", "xval": 0.000001, "display": "Mega British Thermal Units (IT)"},
             { "unit": "cal", "xval": 251.8272344, "display": "Calories"},
@@ -581,14 +564,12 @@ const jsCAU = [
             { "unit": "W-min", "xval": 17.5842642103333, "display": "Watt-Minutes"},
             { "unit": "W-hr", "xval": 0.293071070172222, "display": "Watt-Hours"},
             { "unit": "erg", "xval": 10550558526.2, "display": "Erg"}
-        ]	
+        ]
     },
-    
-    {		
-        "type":	"Force",
-        "contains":	"gf, J/cm, kgf, kN, kg-m/s2, m-kg/s2, kip, mN, N, ozf, lbf, lb-ft/s2, ft-lb/s2, poundal, slug-ft/s2, slugf",
-        "keywords":	"force newton joule slug",
-        "units": [	
+    {
+        "type": "Force",
+        "keywords": "force newton joule slug",
+        "units": [
             { "unit": "gf", "xval": 101972, "display": "Gram-Force"},
             { "unit": "J/cm", "xval": 10, "display": "Joule per Centimeter"},
             { "unit": "kgf", "xval": 101.972, "display": "Kilogram-Force"},
@@ -605,15 +586,12 @@ const jsCAU = [
             { "unit": "poundal", "xval": 7233.0138512, "display": "Poundals"},
             { "unit": "slug-ft/s2", "xval": 224.809, "display": "Slug-Feet per Second-Squared"},
             { "unit": "slugf", "xval": 6.98728, "display": "Slug-Force"}
-        ]	
-    },		
-    
-
-    {		
-        "type":	"Frequency",
-        "contains":	"aHz, fHz, pHz, nHz, uHz, mHz, Hz, kHz, MHz, GHz, THz, PHz, Ehz",
-        "keywords":	"frequency hertz hz wave wavelength sound cycle",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Frequency",
+        "keywords": "frequency hertz hz wave wavelength sound cycle",
+        "units": [
             { "unit": "aHz", "xval": 1000000000000000000, "display": "Attohertz"},
             { "unit": "fHz", "xval": 1000000000000000, "display": "Femtohertz"},
             { "unit": "pHz", "xval": 1000000000000, "display": "Picohertz"},
@@ -627,17 +605,12 @@ const jsCAU = [
             { "unit": "THz", "xval": 0.000000000001, "display": "Terahertz"},
             { "unit": "PHz", "xval": 0.000000000000001, "display": "Petahertz"},
             { "unit": "Ehz", "xval": 0.000000000000000001, "display": "Exahertz"}
-        ]	
-    },		
-    
-
-
-
-    {		
-        "type":	"Inductance",
-        "contains":	"aH, fH, pH, nH, abH, uH, mH, cH, H, kH, MH, GH, TH, PH, EH",
-        "keywords":	"electrical inductance henry",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Inductance",
+        "keywords": "electrical inductance henry",
+        "units": [
             { "unit": "aH", "xval": 1000000000000000000, "display": "Attohenry"},
             { "unit": "fH", "xval": 1000000000000000, "display": "Femtohenries"},
             { "unit": "pH", "xval": 1000000000000, "display": "Picohenries"},
@@ -653,14 +626,12 @@ const jsCAU = [
             { "unit": "TH", "xval": 0.000000000001, "display": "Terrahenries"},
             { "unit": "PH", "xval": 0.000000000000001, "display": "Petahenries"},
             { "unit": "EH", "xval": 0.000000000000000001, "display": "Exahenries"}
-        ]	
-    },		    
-    
-    {		
-        "type":	"Inertia",
-        "contains":	"kg-m2, kg-cm2, kg-mm2, g-cm2, g-mm2, kgf-m-s2, lb-ft2, lbf-ft-s2, lb-in2, lbf-in-s2, slug-ft2",
-        "keywords":	"inertia inertial moment impact",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Inertia",
+        "keywords": "inertia inertial moment impact",
+        "units": [
             { "unit": "kg-m2", "xval": 1, "display": "Kilogram Meters-Squared"},
             { "unit": "kg-cm2", "xval": 10000, "display": "Kilogram Centimeters-Squared"},
             { "unit": "kg-mm2", "xval": 1000000, "display": "Kilogram Millimeters-Squared"},
@@ -672,15 +643,12 @@ const jsCAU = [
             { "unit": "lb-in2", "xval": 3417.171898209, "display": "Pound Inches-Squared"},
             { "unit": "lbf-in-s2", "xval": 8.850745702999, "display": "Pound-Force-Inch Seconds-Squared"},
             { "unit": "slug-ft2", "xval": 0.7375621418999, "display": "Slug Feet-Squared"}
-        ]	
-    },		
-    
-
-    {		
-        "type":	"Length",
-        "contains":	"am, fm, nm, um, mm, cm, dm, m, dam, hm, km, uin, mil, in, ft, yd, mi, ls, lm, ly, pc, au",
-        "keywords":	"length long width height depth distance short",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Length",
+        "keywords": "length long width height depth distance short",
+        "units": [
             { "unit": "am", "xval": 1E+21, "display": "Attometers"},
             { "unit": "fm", "xval": 1000000000000000000, "display": "Femtometers"},
             { "unit": "nm", "xval": 1000000000000, "display": "Nanometers"},
@@ -703,14 +671,12 @@ const jsCAU = [
             { "unit": "ly", "xval": 1.05700083402462E-13, "display": "Light Minutes"},
             { "unit": "pc", "xval": 3.24077928944437E-14, "display": "Parsecs"},
             { "unit": "au", "xval": 6.68458712226845E-09, "display": "Astronomical Units"}
-        ]	
-    },		
-
-    {		
-        "type":	"Mass",
-        "contains":	"carats, drams, grains, g, kg, ug, mg, oz, lb, stones, ton, ton-m",
+        ]
+    },
+    {
+        "type": "Mass",
         "keywords": "mass weight ton gram pound lbm",
-        "units": [	
+        "units": [
             { "unit": "carats", "xval": 5000, "display": "Carats"},
             { "unit": "drams", "xval": 564.38339, "display": "Drams (avdp)"},
             { "unit": "grains", "xval": 15432.358, "display": "Grains (avdp)"},
@@ -723,15 +689,12 @@ const jsCAU = [
             { "unit": "stones", "xval": 0.157473, "display": "Stones"},
             { "unit": "ton", "xval": 0.0011023, "display": "Ton (short)"},
             { "unit": "ton-m", "xval": 0.001, "display": "Ton (metric)"}
-        ]	
-    },		
-    
-
-    {		
-        "type":	"Mass Flow Rate",
-        "contains":	"carats/s, carats/min, carats/hr, drams/s, drams/min, drams/hr, grains/s, grains/min, grains/hr, g/s, g/min, g/hr, kg/s, kg/min, kg/hr, ug/s, ug/min, ug/hr, mg/s, mg/min, mg/hr, oz/s, oz/min, oz/hr, lb/s, lb/min, lb/hr, stones/s, stones/min, stones/hr, ton/s, ton/min, ton/hr, ton-m/s, ton-m/min, ton-m/hr, slug/s, slug/min, slug/hr",
-        "keywords":	"mass flow rate speed weight",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Mass Flow Rate",
+        "keywords": "mass flow rate speed weight",
+        "units": [
             { "unit": "carats/s", "xval": 5000, "display": "Carats per Second"},
             { "unit": "carats/min", "xval": 300000, "display": "Carats per Minute"},
             { "unit": "carats/hr", "xval": 18000000, "display": "Carats per Hour"},
@@ -771,15 +734,12 @@ const jsCAU = [
             { "unit": "slug/s", "xval": 0.0685218, "display": "Slugs per Second"},
             { "unit": "slug/min", "xval": 4.111308, "display": "Slugs per Minute"},
             { "unit": "slug/hr", "xval": 246.67848, "display": "Slugs per Hour"}
-        ]	
-    },		
-    
-
-    {		
-        "type":	"Power",
-        "contains":	"aW, fW, pW, nW, uW, mW, W, kW, MW, GW, TW, PW, EW, hp, hp-m, hp-b, hp-e, hp-w, btu/s, BTU/s, btu/min, BTU/min, btu/hr, BTU/hr, MBtu/s, mbtu/s, MBtu/min, mbtu/min, MBtu/hr, mbtu/hr, MBH, mbh, MMBtu/hr, MMBH, mmbh, ton, cal/s, cal/min, cal/hr, kcal/s, kcal/min, kcal/hr, ft-lbf/s, ft-lbf/min, ft-lbf/hr, erg/s, erg/min, erg/hr, VA, kVA, Nm/s, J/s, J/min, J/hr, kJ/s, kJ/min, kJ/hr",
-        "keywords":	"watt horsepower hp power btu",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Power",
+        "keywords": "watt horsepower hp power btu",
+        "units": [
             { "unit": "aW", "xval": 1E+21, "display": "Attowatts"},
             { "unit": "fW", "xval": 1000000000000000000, "display": "Femtowatts"},
             { "unit": "pW", "xval": 1000000000000000, "display": "Picowatts"},
@@ -837,14 +797,12 @@ const jsCAU = [
             { "unit": "kJ/s", "xval": 1, "display": "Kilojoules per Second"},
             { "unit": "kJ/min", "xval": 60, "display": "Kilojoules per Minute"},
             { "unit": "kJ/hr", "xval": 3600, "display": "Kilojoules per Hour"}
-        ]	
-    },		
-    
-    {		
-        "type":	"Pressure",
-        "contains":	"atm, bar, cmHg, cmWC, ftWC, GPa, HPa, inHg, inHg-15, inWC-15, inWC, kgf/mm2, kgf/cm2, kgf/m2, kPa, kpf/in2, MPa, mWC-15, mWC, ubar, microbar, utorr, millitorr, ubar, millibar, mmHg, mmWC, mmWC-15, N/m2, P, lbf/ft2, lbf/in2, psi, torr",
-        "keywords":	"psi psia psig pressure squeeze pascal atmospheric pressure bar",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Pressure",
+        "keywords": "psi psia psig pressure squeeze pascal atmospheric pressure bar",
+        "units": [
             { "unit": "atm", "xval": 9.86923, "display": "atmospheric pressure"},
             { "unit": "bar", "xval": 10, "display": "bars"},
             { "unit": "cmHg", "xval": 750.062, "display": "centimeters of mercury (0 Celsius)"},
@@ -879,14 +837,12 @@ const jsCAU = [
             { "unit": "lbf/in2", "xval": 145.038, "display": "pound-force per inch-squared"},
             { "unit": "psi", "xval": 145.038, "display": "pound-force per inch-squared"},
             { "unit": "torr", "xval": 7500.62, "display": "torr"}
-        ]	
-    },		
-    
-    {		
-        "type":	"Resistance",
-        "contains":	"uohm, mohm, ohm, kohm, Mohm, V/A, abohm",
-        "keywords":	"resistance ohm electrical",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Resistance",
+        "keywords": "resistance ohm electrical",
+        "units": [
             { "unit": "uohm", "xval": 1000000, "display": "Microohms"},
             { "unit": "mohm", "xval": 1000, "display": "Milliohms"},
             { "unit": "ohm", "xval": 1, "display": "Ohms"},
@@ -894,27 +850,21 @@ const jsCAU = [
             { "unit": "Mohm", "xval": 0.000001, "display": "Megaohms"},
             { "unit": "V/A", "xval": 1, "display": "Volts per Ampere"},
             { "unit": "abohm", "xval": 1000000000, "display": "Abohms"}
-        ]	
-    },		
-    
-
-
-    {		
-        "type":	"Sound",
-        "contains":	"dB, B, Np",
-        "keywords":	"hear hearing sound decibel dB db loud noise",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Sound",
+        "keywords": "hear hearing sound decibel dB db loud noise",
+        "units": [
             { "unit": "dB", "xval": 1, "display": "Decibels"},
             { "unit": "B", "xval": 0.1, "display": "Bels"},
             { "unit": "Np", "xval": 0.11512925465, "display": "Nepers"}
-        ]	
-    },		
-    
-    {		
-        "type":	"Specific Volume",
-        "contains":	"mm3/mg, mm3/g, mm3/kg, cm3/mg, cm3/g, cm3/kg, m3/mg, m3/g, m3/kg, mL/mg, mL/g, mL/kg, L/mg, L/g, L/kg, in3/mg, in3/g, in3/kg, in3/oz, in3/lb, ft3/mg, ft3/g, ft3/kg, ft3/oz, ft3/lb, gal/lb",
-        "keywords":	"sv specific volume compact volume mass weight dense density",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Specific Volume",
+        "keywords": "sv specific volume compact volume mass weight dense density",
+        "units": [
             { "unit": "mm3/mg", "xval": 1000, "display": "Cubic-Millimeters per Milligram"},
             { "unit": "mm3/g", "xval": 1000000, "display": "Cubic-Millimeters per Gram"},
             { "unit": "mm3/kg", "xval": 1000000000, "display": "Cubic-Millimeters per Kilogram"},
@@ -941,14 +891,12 @@ const jsCAU = [
             { "unit": "ft3/oz", "xval": 1.001153970625, "display": "Cubic-Feet per Ounce"},
             { "unit": "ft3/lb", "xval": 16.01846353, "display": "Cubic-Feet per Pound"},
             { "unit": "gal/lb", "xval": 119.826435935, "display": "Gallons per Pound"}
-        ]	
-    },		
-
-    {		
-        "type":	"Surface Tension",
-        "contains":	["mN/cm", "N/cm", "kN/cm", "mN/m", "N/m", "kN/m", "gf/cm", "dyne/cm", "erg/mm2", "erg/cm2", "lbf/in"],
-        "keywords":	"tensile surface tension force shear",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Surface Tension",
+        "keywords": "tensile surface tension force shear",
+        "units": [
             { "unit": "mN/cm", "xval": 0.00001, "display": "Millinewtons per Centimeter"},
             { "unit": "N/cm", "xval": 0.01, "display": "Newtons per Centimeter"},
             { "unit": "kN/cm", "xval": 10, "display": "Kilonewtons per Centimeter"},
@@ -960,15 +908,12 @@ const jsCAU = [
             { "unit": "erg/mm2", "xval": 1000, "display": "Ergs per Millimeters-Squared"},
             { "unit": "erg/cm2", "xval": 10, "display": "Ergs per Centimeters-Squared"},
             { "unit": "lbf/in", "xval": 0.005710147098, "display": "Pound-Force per Inch"}
-        ]	
-    },		
-    
-
-    {		
-        "type":	"Time",
-        "contains":	"ns, us, ms, s, min, hr, day, wk, mon, yr",
-        "keywords":	"second minute week month year day hour time",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Time",
+        "keywords": "second minute week month year day hour time",
+        "units": [
             { "unit": "ns", "xval": 3600000000000, "display": "Nanoseconds"},
             { "unit": "us", "xval": 3600000000, "display": "Microseconds"},
             { "unit": "ms", "xval": 3600000, "display": "Milliseconds"},
@@ -979,14 +924,12 @@ const jsCAU = [
             { "unit": "wk", "xval": 0.005952380952381, "display": "Weeks"},
             { "unit": "mon", "xval": 0.001369863013699, "display": "Months"},
             { "unit": "yr", "xval": 0.0001141552511416, "display": "Years"}
-        ]	
-    },	
-    
-    {		
-        "type":	"Torque",
-        "contains":	"N-m, N-cm, N-mm, kN-m, dyne-m, dyne-cm, dyne-mm, kgf-m, kgf-cm, kgf-mm, gf-m, gf-cm, gf-mm, lbf-ft, lbf-in",
-        "keywords":	"torque twist dyne",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Torque",
+        "keywords": "torque twist dyne",
+        "units": [
             { "unit": "N-m", "xval": 1, "display": "Newton Meters"},
             { "unit": "N-cm", "xval": 100, "display": "Newton Centimeters"},
             { "unit": "N-mm", "xval": 1000, "display": "Newton Millimeters"},
@@ -1002,15 +945,12 @@ const jsCAU = [
             { "unit": "gf-mm", "xval": 101971.6212978, "display": "Gram-Force Millimeters"},
             { "unit": "lbf-ft", "xval": 0.7375621211697, "display": "Pound-Force Feet"},
             { "unit": "lbf-in", "xval": 8.850745454036, "display": "Pound-Force Inches"}
-        ]	
-    },		
-    
-
-    {		
-        "type":	"Velocity (Angular)",
-        "contains":	"deg/hr, deg/min, deg/s, grade/s, rad/hr, rad/min, rad/s, rev/hr, rev/min, rpm, rev/s, rps",
-        "keywords":	"angular velocity speed angle circular circle round radian degree revolution",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Velocity (Angular)",
+        "keywords": "angular velocity speed angle circular circle round radian degree revolution",
+        "units": [
             { "unit": "deg/hr", "xval": 1296000, "display": "degrees per hour"},
             { "unit": "deg/min", "xval": 21600, "display": "degrees per minute"},
             { "unit": "deg/s", "xval": 360, "display": "degrees per second"},
@@ -1023,14 +963,12 @@ const jsCAU = [
             { "unit": "rpm", "xval": 60, "display": "revolutions per minute"},
             { "unit": "rev/s", "xval": 1, "display": "revolutions per second"},
             { "unit": "rps", "xval": 1, "display": "revolutions per second"}
-        ]	
-    },		
-
-    {		
-        "type":	"Velocity (Linear)",
-        "contains":	"m/s, m/min, m/hr, ft/hr, fph, fps, ft/s, ft/min, fpm, ips, in/s, in/min, in/hr, cm/s, cm/min, cm/hr, mm/s, mm/min, mm/hr, km/s, km/min, km/hr, kph, mi/s, mi/min, mi/hr, mph, kn, c, M",
-        "keywords":	"velocity speed linear straight per second meter feet inch mile mph fpm",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Velocity (Linear)",
+        "keywords": "velocity speed linear straight per second meter feet inch mile mph fpm",
+        "units": [
             { "unit": "m/s", "xval": 1, "display": "Meters per Second"},
             { "unit": "m/min", "xval": 60, "display": "Meters per Minute"},
             { "unit": "m/hr", "xval": 3600, "display": "Meters per Hour"},
@@ -1061,15 +999,12 @@ const jsCAU = [
             { "unit": "kn", "xval": 1.94384449244, "display": "Knots"},
             { "unit": "c", "xval": 3.335640951981E-09, "display": "Speed of Light (in a vacuum)"},
             { "unit": "M", "xval": 0.0033892974122, "display": "Mach (SI Standard)"}
-        ]	
-    },		
-    
-    
-    {		
-        "type":	"Viscosity (Dynamic Absolute)",
-        "contains":	"P-s, kgf-s/m2, N-s/m2, mN-s/m2, dyne-s/cm2, nP, uP, mP, cP, P, kP, MP, GP, lbf-s/in2, lbf-s/ft2, g/cm/s, lb/ft/s, lb/ft/hr, reyn",
-        "keywords":	"viscosity poise dynamic absolute viscous",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Viscosity (Dynamic Absolute)",
+        "keywords": "viscosity poise dynamic absolute viscous",
+        "units": [
             { "unit": "P-s", "xval": 1, "display": "Pascal-Seconds"},
             { "unit": "kgf-s/m2", "xval": 0.1019716212978, "display": "Kilogram-Force-Seconds per Meter-Squared"},
             { "unit": "N-s/m2", "xval": 1, "display": "Newton-Seconds per Meter-Squared"},
@@ -1089,14 +1024,12 @@ const jsCAU = [
             { "unit": "lb/ft/s", "xval": 0.67196897514, "display": "Pounds per Foot per Second"},
             { "unit": "lb/ft/hr", "xval": 2419.088310502, "display": "Pounds per Foot per Hour"},
             { "unit": "reyn", "xval": 0.0001451378809869, "display": "Reyn"}
-        ]	
-    },		
-    
-    {		
-        "type":	"Viscosity (Kinematic)",
-        "contains":	"m2/s, m2/hr, cm2/s, mm2/s, ft2/s, ft2/hr, in2/s, GSt, MSt, kSt, St, cSt, mSt, uSt, nSt",
-        "keywords":	"kinematic viscosity stoke viscous",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Viscosity (Kinematic)",
+        "keywords": "kinematic viscosity stoke viscous",
+        "units": [
             { "unit": "m2/s", "xval": 1, "display": "Meters-Squared per Second"},
             { "unit": "m2/hr", "xval": 3600, "display": "Meters-Squared per Hour"},
             { "unit": "cm2/s", "xval": 10000, "display": "Centimeters-Squared per Second"},
@@ -1112,14 +1045,12 @@ const jsCAU = [
             { "unit": "mSt", "xval": 10000000, "display": "Millistokes"},
             { "unit": "uSt", "xval": 10000000000, "display": "Microstokes"},
             { "unit": "nSt", "xval": 10000000000000, "display": "Nanostokes"}
-        ]	
-    },		
-
-    {		
-        "type":	"Volume",
-        "contains":	"m3, ft3, in3, mm3, yd3, cm3, mL, cups, gal, L, oz, tsp, tbsp, qt",
-        "keywords":	"volume fill cube cubed cubic liquid dry",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Volume",
+        "keywords": "volume fill cube cubed cubic liquid dry",
+        "units": [
             { "unit": "m3", "xval": 1, "display": "Cubic-Meters"},
             { "unit": "ft3", "xval": 35.3146667, "display": "Cubic-Feet"},
             { "unit": "in3", "xval": 61023.7440947, "display": "Cubic-Inches"},
@@ -1134,14 +1065,12 @@ const jsCAU = [
             { "unit": "tsp", "xval": 202884.136209, "display": "Teaspoons"},
             { "unit": "tbsp", "xval": 67628.0454048, "display": "Tablespoons"},
             { "unit": "qt", "xval": 1056.6882094, "display": "Quarts"}
-        ]	
-    },		
-    
-    {		
-        "type":	"Volume Flow Rate",
-        "contains":	"mm3/s, mm3/min, mm3/hr, cm3/s, cm3/min, cm3/hr, m3/s, CMS, cms, m3/min, CMM, cmm, m3/hr, CMH, cmh, km3/s, km3/min, km3/hr, in3/s, in3/min, in3/hr, ft3/s, CFS, cfs, ft3/min, cfm, CFM, ft3/hr, CFH, cfs, yd3/s, yd3/min, yd3/hr, gal/s, GPS, gps, gal/min, GPM, gpm, gal/hr, GPH, gph, oz/s, oz/min, oz/hr, mL/s, mL/min, mL/hr, L/s, LPS, lps, L/min, LPM, lpm, L/hr, LPH, lph, cup/s, cup/min, cup/hr, tsp/s, tsp/min, tsp/hr, tbsp/s, tbsp/min, tbsp/hr, qt/s, qt/min, qt/hr",
-        "keywords":	"volumetric flow volume rate fill speed velocity weight cube cubic cubed",
-        "units": [	
+        ]
+    },
+    {
+        "type": "Volume Flow Rate",
+        "keywords": "volumetric flow volume rate fill speed velocity weight cube cubic cubed",
+        "units": [
             { "unit": "mm3/s", "xval": 1000000000, "display": "Cubic-Millimeters per Second"},
             { "unit": "mm3/min", "xval": 60000000000, "display": "Cubic-Millimeters per Minute"},
             { "unit": "mm3/hr", "xval": 3600000000000, "display": "Cubic-Millimeters per Hour"},
@@ -1211,7 +1140,6 @@ const jsCAU = [
             { "unit": "qt/s", "xval": 1056.6882094, "display": "Quarts per Second"},
             { "unit": "qt/min", "xval": 63401.292564, "display": "Quarts per Minute"},
             { "unit": "qt/hr", "xval": 3804077.55384, "display": "Quarts per Hour"}
-        ]	
-    } 
-    
+        ]
+    }
 ];
