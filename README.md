@@ -46,7 +46,7 @@ The primary function takes the following form:
 jsConvert( [Value], [From Unit], [To Unit], [Decimal Place] );
 ```
 
-Assume we wish to convert 2.034 square-feet to square-meters. We can retrieve the full answer or round it to the 3rd decimal place.
+Assume we want to convert 2.034 square-feet to square-meters. We can retrieve the full answer or round it to the 3rd decimal place.
 ```
 jsConvert(2.304, "ft2", "m2");
     ----- output: 0.21404859046088998
@@ -61,7 +61,7 @@ jsConvert(2.304, "ft2", "m2", 3);
 
 ## Error Handling
 
-The script ensures the the passed short-hand units ("From" and "To") are of the same *type* (ie: Length, Area, Velocity, Density, etc...). 
+The script ensures the passed short-hand units ("From" and "To") are of the same *type* (ie: Length, Area, Velocity, Density, etc...). 
 
 If the script detects an error, the returned value will always be **-INFINITY**.
 
