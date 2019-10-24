@@ -189,6 +189,7 @@ Volume Flow Rate
 ## HELP &#8594; UNIT TYPE
 
 To view a list of short-hand units associated with a specific Unit Type, pass the Unit Type into the function as the second parameter.
+
 **CASE-SENSITIVE**
 ```
    jsConvert("help", "Area");
@@ -224,6 +225,7 @@ Use the following short-hand codes for AREA units:
 
 To confirm if a short-hand unit exists, and what unit type it is associated with,
 pass the parameter "check" followed by the short-hand unit you wish to query.
+
 **CASE-SENSITIVE**
 ```
 EXAMPLES:
@@ -251,9 +253,18 @@ EXAMPLES:
 
 To search for a unit or unit type, you may enter keywords that are associated with the unit or unit type.
 Simply pass the parameter "search", followed by your keyword search.
+
 **NOT CASE-SENSITIVE**
 
 ```
+  jsConvert("search", "electr");
+
+--------------------------------------------------------------------------------------
+**************************************************************************************
+JSCONVERT SEARCH
+**************************************************************************************
+--------------------------------------------------------------------------------------
+
   Searching dataset for 'electr'....
     UNIT TYPE: Capacitance
     UNIT TYPE: Current
