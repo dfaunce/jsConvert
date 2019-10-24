@@ -77,10 +77,15 @@ jsConvert(3.553, "m", "cm3");
 <br/>
 
 
-## Help
+# Help
 
-To retrieve a full list of short-hand units, simply pass the parameter **help** into the function and check the console for the help text.
+A built-in **help** section is accessible and viewable via the console.
 
+The help command accepts one to two parameters. 
+The first must be "help".
+The second parameter (optional) must be "units"
+
+To view general usage,  guidelines, and additional help resources, simply pass "help" into the function.
 ```
 jsConvert("help");
 
@@ -136,4 +141,128 @@ To search for a unit or type (*partial searches are accepted):
 **************************************************************************************
 **************************************************************************************
 
+```
+<br/>
+
+## HELP &#8594; UNITS
+
+To view the list of Unit Types in the dataset, pass "units" as the 2nd parameter.
+```
+    jsConvert("help", "units");
+
+--------------------------------------------------------------------------------------
+**************************************************************************************
+JSCONVERT HELP => units
+**************************************************************************************
+--------------------------------------------------------------------------------------
+
+Acceleration (Angular)
+Acceleration (Linear)
+Area
+Capacitance
+Current
+Density
+Energy
+Force
+Frequency
+Inductance
+Inertia
+Length
+Mass
+Mass Flow Rate
+Power
+Pressure
+Resistance
+Sound
+Specific Volume
+Surface Tension
+Time
+Torque
+Velocity (Angular)
+Velocity (Linear)
+Viscosity (Dynamic Absolute)
+Viscosity (Kinematic)
+Volume
+Volume Flow Rate
+```
+
+## HELP &#8594; UNIT TYPE
+
+To view a list of short-hand units associated with a specific Unit Type, pass the Unit Type into the function as the second parameter.
+**CASE-SENSITIVE**
+```
+   jsConvert("help", "Area");
+
+--------------------------------------------------------------------------------------
+**************************************************************************************
+JSCONVERT HELP => Area
+**************************************************************************************
+--------------------------------------------------------------------------------------
+
+  EXAMPLE:  jsConvert(158.5, 'nm2', 'um2');
+
+Use the following short-hand codes for AREA units:
+ - nm2 (Nanometers-Squared)
+ - um2 (Micrometers-Squared)
+ - mm2 (Millimeters-Squared)
+ - cm2 (Centimeters-Squared)
+ - dm2 (Decimeters-Squared)
+ - m2 (Meters-Squared)
+ - dam2 (Decameters-Squared)
+ - hm2 (Hectometers-Squared)
+ - km2 (Kilometers-Squared)
+ - mil2 (Mil-Squared)
+ - in2 (Inches)
+ - ft2 (Feet)
+ - yd2 (Yards)
+ - mi2 (Mile)
+ - acre (Acres)
+
+```
+
+## CHECK &#8594; UNIT
+
+To confirm if a short-hand unit exists, and what unit type it is associated with,
+pass the parameter "check" followed by the short-hand unit you wish to query.
+**CASE-SENSITIVE**
+```
+EXAMPLES:
+
+    jsConvert("check", "N-s/m2");
+    
+    output:
+      CONFIRMED! The short-hand code 'N-s/m2' exists in TYPE [Viscosity (Dynamic Absolute)].
+      
+---------------------------------------------------------------------------------------------------------
+    jsConvert("check", "m-N/s2");
+    
+    output:
+      SORRY... the short-hand code 's-N/m2' could not be found in the dataset.
+      
+---------------------------------------------------------------------------------------------------------     
+    jsConvert("check", "oz");
+    
+    output:
+      CONFIRMED! The short-hand code 'oz' exists in TYPE [Mass].
+      CONFIRMED! The short-hand code 'oz' exists in TYPE [Volume].
+```
+
+## SEARCH KEYWORDS
+
+To search for a unit or unit type, you may enter keywords that are associated with the unit or unit type.
+Simply pass the parameter "search", followed by your keyword search.
+**NOT CASE-SENSITIVE**
+
+```
+  Searching dataset for 'electr'....
+    UNIT TYPE: Capacitance
+    UNIT TYPE: Current
+    UNIT: meV  (Millielectron-Volts) in TYPE [Energy]
+    UNIT: eV  (Electron-Volts) in TYPE [Energy]
+    UNIT: keV  (Kiloelectron-Volts) in TYPE [Energy]
+    UNIT: MeV  (Megaelectron-Volts) in TYPE [Energy]
+    UNIT: GeV  (Gigaelectron-Volts) in TYPE [Energy]
+    UNIT TYPE: Inductance
+    UNIT: hp-e  (Horsepower (electric)) in TYPE [Power]
+    UNIT TYPE: Resistance
 ```
