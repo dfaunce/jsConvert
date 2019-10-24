@@ -1,7 +1,7 @@
-let jsConvert = function(val, from, to, decimalPlaces = null) {
+var jsConvert = function(val, from, to, decimalPlaces) {
 
     //Get decimal places. If the user didn't input one, assume the user wants the full value (expressed as -1)
-    let decimals = (typeof(decimalPlaces) === 'undefined' || decimalPlaces == null ) ? -1 : parseInt(decimalPlaces);
+    var decimals = (typeof(decimalPlaces) === 'undefined' || decimalPlaces == null ) ? -1 : parseInt(decimalPlaces);
    
 
     //Retrieve the JSON object where both "from" and "to" units reside in.
