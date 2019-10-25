@@ -117,7 +117,7 @@ The primary function takes 4 parameters (the first three are required):
 
     ----------------------------------------------------------------------------------
     Example: jsConvert(43.5, 'ft/hr2', 'm/s2', 2);
-    This converts 43.5 Meters per Square-Second to Feet per Square-Minute and rounds to nearest 2nd decimal place
+    This converts 43.5 Feet per Square-Hour to Meters per Square-Second and rounds to nearest 2nd decimal place
     output: 513779.53
     ----------------------------------------------------------------------------------
 
