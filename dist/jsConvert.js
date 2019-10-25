@@ -266,12 +266,12 @@ let jsConvert = function(val, from, to, dec = null) {
 				_display.push("", bar, bigBar, `JSCONVERT HELP => ${_type}`, bigBar, bar, "");
 				
 				if (_type.toLowerCase() == "units") {
-					var $records = jsCAU.map(o => o.type);					
-					for (i = 0; i < $records.length; i++) {
-						_display.push(`${$records[i].toString()}`);
-					}
+					var $records = jsCAU.map(o => o.type);
 					$records.push("Temperature");
 					$records.sort();
+					for (i = 0; i < $records.length; i++) {
+						_display.push(`${$records[i].toString()}`);
+					}					
 				}
 				else {
 					if (_type === "Temperature") {						
@@ -281,8 +281,7 @@ let jsConvert = function(val, from, to, dec = null) {
 						_display.push(` - C (Celsius)`);
 						_display.push(` - F (Farenheit)`);
 						_display.push(` - K (Kelvin)`);
-						_display.push(` - R (Rankine)`);
-						
+						_display.push(` - R (Rankine)`);						
 					}
 					else {
 						var $records = jsCAU.filter(obj => obj.type === _type);
