@@ -30,7 +30,7 @@ let jsConvert = function(val, from, to, dec = null) {
         // $from and $to will represent the found objects in the loop below
         let $from, $to;
 
-        // $result is the resultant object, it is preset to null and empty values
+        // $result is the resultant object, it is preset to null and empty vals
         let $result = {"type":null, "from":null, "to":null, "errors": []};
 
         //Initate a search on the dataset by running a for loop
