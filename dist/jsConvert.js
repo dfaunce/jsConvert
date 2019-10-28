@@ -856,7 +856,7 @@ const jsCAU = [
             { "unit": "mmWC", "xval": 102071, "display": "millimeters of water (4 Celsius)"},
             { "unit": "mmWC-15", "xval": 101974, "display": "millimeters of water (15.56 Celsius)"},
             { "unit": "N/m2", "xval": 1000000, "display": "Newtons per meter-squared"},
-            { "unit": "P", "xval": 1000000, "display": "pascals"},
+            { "unit": "Pa", "xval": 1000000, "display": "pascals"},
             { "unit": "lbf/ft2", "xval": 20885.4, "display": "pound-force per foot-squared"},
             { "unit": "lbf/in2", "xval": 145.038, "display": "pound-force per inch-squared"},
             { "unit": "psi", "xval": 145.038, "display": "pound-force per inch-squared"},
