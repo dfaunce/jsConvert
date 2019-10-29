@@ -173,7 +173,7 @@ let jsConvert = function(val, from, to, dec = null) {
 
     //Converts units in the jsCAU array of objects
     function convertLinear(val, from, to) {
-
+	let v = -Infinity;
         //Get the object $set by searching the Units dataset for the FROM and TO short-hand units.
         let $set = getTypeofUnits(from, to);
 
@@ -185,7 +185,10 @@ let jsConvert = function(val, from, to, dec = null) {
 
         //At this point, we do not have errors and we have retrieved the FROM and TO dataset objects.
         //Calculate the converted value.
-        let v = parseFloat(val * $set.to.xval / $set.from.xval);
+	if (!isNaN($set.to.xval) && !isNaN($set.from.xval)) {
+	    v = parseFloat(val * $set.to.xval / $set.from.xval);
+	}
+        
 
         //return the value
         return v;
