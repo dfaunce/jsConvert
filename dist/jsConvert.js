@@ -185,7 +185,7 @@ let jsConvert = function(val, from, to, dec = null) {
 
         //At this point, we do not have errors and we have retrieved the FROM and TO dataset objects.
         //Calculate the converted value.
-	if (!isNaN($set.to.xval) && !isNaN($set.from.xval)) {
+	if ($set.to.xval != null && $set.from.xval != null && !isNaN($set.to.xval) && !isNaN($set.from.xval)) {
 	    v = parseFloat(val * $set.to.xval / $set.from.xval);
 	}
         
