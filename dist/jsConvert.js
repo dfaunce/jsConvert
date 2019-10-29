@@ -173,7 +173,10 @@ let jsConvert = function(val, from, to, dec = null) {
 
     //Converts units in the jsCAU array of objects
     function convertLinear(val, from, to) {
-	let v = -Infinity;
+        let v = -Infinity;
+      
+        
+      
         //Get the object $set by searching the Units dataset for the FROM and TO short-hand units.
         let $set = getTypeofUnits(from, to);
 
@@ -213,8 +216,18 @@ let jsConvert = function(val, from, to, dec = null) {
 			return "";
 		}
 		else {
+           let v = -Infinity;
+            if (val == null || typeof(val) === 'undefined' || isNaN(val)) {
+              console.log("(jsConvert) ERROR: Value must be numeric.");
+              return v;
+            }
+            if (from == null || typeof(from) === 'undefined' || to == null || typeof(to) === 'undefined') {
+              console.log("(jsConvert) ERROR: From and/or To must be defined");
+              return v;
+            }
+          
 			//Check to see if we are converting Temperatures or another type of unit.
-			let v = (from.match(/^(F|C|R|K)$/) && from.match(/^(F|C|R|K)$/)) ? convertTemp(val, from, to) : convertLinear(val, from, to);
+			v = (from.match(/^(F|C|R|K)$/) && from.match(/^(F|C|R|K)$/)) ? convertTemp(val, from, to) : convertLinear(val, from, to);
 
 			//If we have a calculated value (no errors) and the user specified a decimal place, round the value to the decimal place
 			if (v !== -Infinity && decimals >= 0) {
